@@ -1,0 +1,24 @@
+name: API Data Examples
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Ingestion Script
+        env:
+          COURTLISTENER_TOKEN: ${{ secrets.COURT_LISTENER_KEY }}
+        run: python scripts/api_data_examples.py
