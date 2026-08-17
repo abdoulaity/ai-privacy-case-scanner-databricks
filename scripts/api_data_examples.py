@@ -11,7 +11,7 @@ if not api_key:
 
 headers = {"Authorization": f"Token {api_key}"}
 base_url = "https://www.courtlistener.com/api/rest/v4"
-os.makedirs("api_data_examples", exist_ok=True)
+os.makedirs("data/api_data_examples", exist_ok=True)
 
 # --- Step 1: Basic Connectivity Test with One Search :"data protection" ---
 try:
