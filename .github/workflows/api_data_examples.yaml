@@ -20,5 +20,5 @@ jobs:
 
       - name: Run Ingestion Script
         env:
-          COURT_LISTENER_TOKEN: ${{ secrets.COURT_LISTENER_KEY }}
+          COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY }}
         run: python scripts/api_data_examples.py
