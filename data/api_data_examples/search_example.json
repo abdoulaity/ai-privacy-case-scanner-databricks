@@ -1,0 +1,86 @@
+{
+  "absolute_url": "/opinion/4652873/radiation-data-inc-vs-new-jersey-department-of-environmental-protection/",
+  "attorney": "",
+  "caseName": "RADIATION DATA, INC. VS. NEW JERSEY DEPARTMENT OF ENVIRONMENTAL PROTECTION (L-1260-16, SOMERSET COUNTY AND STATEWIDE)",
+  "caseNameFull": "",
+  "citation": [
+    "196 A.3d 579",
+    "456 N.J. Super. 550"
+  ],
+  "citeCount": 11,
+  "cluster_id": 4652873,
+  "court": "New Jersey Superior Court Appellate Division",
+  "court_citation_string": "N.J. Super. Ct. App. Div.",
+  "court_id": "njsuperctappdiv",
+  "court_jurisdiction": null,
+  "dateArgued": null,
+  "dateFiled": "2018-11-02",
+  "dateReargued": null,
+  "dateReargumentDenied": null,
+  "docketNumber": "A-0707-17T2",
+  "docket_id": 16085524,
+  "judge": "",
+  "lexisCite": "",
+  "meta": {
+    "timestamp": "2024-06-22T01:46:33.869136Z",
+    "date_created": "2019-08-20T19:36:10.339244Z",
+    "score": {
+      "bm25": 62.48291
+    }
+  },
+  "neutralCite": "",
+  "non_participating_judge_ids": [],
+  "opinions": [
+    {
+      "author_id": null,
+      "cites": [
+        77781,
+        105930,
+        110763,
+        111481,
+        111953,
+        112763,
+        118203,
+        118214,
+        145918,
+        217703,
+        679504,
+        780510,
+        1235178,
+        1437690,
+        1463595,
+        1476754,
+        1855348,
+        1980177,
+        2071191,
+        2072920,
+        2264462
+      ],
+      "download_url": "http://www.judiciary.state.nj.us/attorneys/assets/opinions/appellate/published/a0707-17.pdf",
+      "id": 4430126,
+      "joined_by_ids": [],
+      "local_path": "pdf/2018/11/02/radiation_data_inc._vs._new_jersey_department_of_environmental_protection.pdf",
+      "meta": {
+        "timestamp": "2025-10-25T17:46:54.113398Z",
+        "date_created": "2019-08-20T19:36:10.344072Z"
+      },
+      "ordering_key": null,
+      "per_curiam": false,
+      "sha1": "8154c424b88bd4fa5bce021018b6db3032f2290d",
+      "snippet": "                NOT FOR PUBLICATION WITHOUT THE\n               APPROVAL OF THE APPELLATE DIVISION\n\n                                  SUPERIOR COURT OF NEW JERSEY\n                                  APPELLATE DIVISION\n                                  DOCKET NO. A-0707-17T2\n\nRADIATION DATA, INC.,\n\n      Plaintiff-Respondent,           APPROVED FOR PUBLICATION\n\n                                            November 2, 2018\nv.\n                                          APPELLATE DIVISION\nNEW JERSEY DEPA",
+      "type": "combined-opinion"
+    }
+  ],
+  "panel_ids": [],
+  "panel_names": [],
+  "posture": "",
+  "procedural_history": "",
+  "scdb_id": "",
+  "sibling_ids": [
+    4430126
+  ],
+  "source": "C",
+  "status": "Published",
+  "suitNature": "",
+  "syllabus": ""
+}
