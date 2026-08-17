@@ -22,3 +22,11 @@ jobs:
         env:
           COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY }}
         run: python scripts/api_data_examples.py
+
+      - name: Commit and Push Data Examples
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/api_data_examples/
+          git commit -m "chore: Push API Data Examples in the Repo" -m "Generate Search and Opinion Examples JSON from CourtListener API via manual workflow run." || echo "No changes to commit"
+          git push  
