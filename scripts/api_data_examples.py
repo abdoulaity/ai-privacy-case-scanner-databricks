@@ -3,7 +3,7 @@ import sys
 import json
 import requests
 
-# --- Setup: Credentials, Auth Headers, API Base URL, and Output Folder
+# --- Setup: Credentials, Auth Headers, API Base URL, and Output Folder ---
 api_key = os.environ.get("COURT_LISTENER_KEY")
 if not api_key:
     print("ERROR: COURT_LISTENER_KEY environment variable not set.")
