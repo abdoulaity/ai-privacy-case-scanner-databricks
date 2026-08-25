@@ -32,7 +32,7 @@ print("Connectivity Test: Passed")
 query = '"data privacy" OR "data protection" OR "GDPR" OR "CCPA" OR "personal information" OR "personal data" OR "data breach"'
 
 url = f"{base_url}/search/"
-params = {"q": query, "type": "o"}
+params = {"q": query, "type": "o", "filed_after": "2016-12-31", "filed_before": "2026-12-31"}
 opinions_data = []  # will collect every fetched opinion, across all pages and all cases
 
 # --- Step 3: Loop Through Every Page of Search Results (Pagination) ---
