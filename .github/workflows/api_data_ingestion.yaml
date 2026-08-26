@@ -1,0 +1,32 @@
+name: API PRIVACY CASES
+
+on:
+  workflow_dispatch:
+
+jobs:
+  fetch-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Set Up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Dependencies
+        run: pip install requests
+
+      - name: Run Ingestion Script
+        env:
+          COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY }}
+        run: python scripts/api_data_ingestion.py
+
+      - name: Commit and Push Data Examples
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/api_data_ingestion/ data/checkpoint/
+          git commit -m "chore: Push API Privacy Cases in the Repo" -m "Generate Privacy Cases corpus in a JSON format, from CourtListener API via manual workflow run." || echo "No changes to commit"
+          git push  
