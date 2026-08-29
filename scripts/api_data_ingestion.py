@@ -26,7 +26,7 @@ if os.path.exists(checkpoint_path):
     print("Checkpoint found. Running incremental from:", filed_after)
 else:
     checkpoint = None
-    filed_after = "2016-12-31"  # backfill default, first-ever run
+    filed_after = "2020-12-31"  # backfill default, first-ever run
     print("No checkpoint found. Running backfill from:", filed_after)
 
 filed_before = datetime.now().strftime("%Y-%m-%d")
