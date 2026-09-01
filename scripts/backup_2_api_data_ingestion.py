@@ -11,52 +11,25 @@ if not api_key:
     print("ERROR: COURT_LISTENER_KEY environment variable not set.")
     sys.exit(1)
 
-databricks_token = os.environ.get("DATABRICKS_TOKEN")
-databricks_host = os.environ.get("DATABRICKS_WORKSPACE_URL") # Like: https://dbc-XXXXXXXX-YYYY.cloud.databricks.com/
-volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")  # Like: /Volumes/my_catalog/my_schema/my_volume
-
-if not databricks_token or not databricks_host or not volume_path:
-    print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN, DATABRICKS_HOST, DATABRICKS_VOLUME_PATH).")
-    sys.exit(1)
-
 headers = {"Authorization": f"Token {api_key}"}
 base_url = "https://www.courtlistener.com/api/rest/v4"
 os.makedirs("data/api_data_examples", exist_ok=True)
-
-MAX_PAGES_PER_RUN = 10  # cap how many pages this single run processes
 
 # --- Read existing checkpoint, if any ---
 checkpoint_path = "data/checkpoint/checkpoint.json"
 os.makedirs("data/checkpoint", exist_ok=True)
 
-query = '"data privacy" OR "data protection" OR "GDPR" OR "CCPA" OR "personal information" OR "personal data" OR "data breach"'
-base_search_url = f"{base_url}/search/"
-
 if os.path.exists(checkpoint_path):
     with open(checkpoint_path, "r") as f:
         checkpoint = json.load(f)
-
-    if checkpoint.get("next_page_url"):
-        # Mid-backfill: resume exactly where the last run stopped
-        url = checkpoint["next_page_url"]
-        params = None
-        filed_after = checkpoint["last_date_filed"]
-        print("Resuming mid-backfill from stored page URL.")
-    else:
-        # Backfill finished previously: now in incremental mode
-        filed_after = checkpoint["last_date_filed"]
-        filed_before = datetime.now().strftime("%Y-%m-%d")
-        url = base_search_url
-        params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
-        print("Checkpoint found. Running incremental from:", filed_after)
+    filed_after = checkpoint["last_date_filed"]
+    print("Checkpoint found. Running incremental from:", filed_after)
 else:
-    # First-ever run: full backfill start
     checkpoint = None
-    filed_after = "2020-12-31"
-    filed_before = datetime.now().strftime("%Y-%m-%d")
-    url = base_search_url
-    params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
+    filed_after = "2020-12-31"  # backfill default, first-ever run
     print("No checkpoint found. Running backfill from:", filed_after)
+
+filed_before = datetime.now().strftime("%Y-%m-%d")
 
 # --- Step 1: Basic Connectivity Test ---
 try:
@@ -73,12 +46,16 @@ except requests.exceptions.RequestException as e:
 
 print("Connectivity Test: Passed")
 
-# --- Step 2: Loop Through a Capped Number of Pages (Pagination + Batching) ---
-opinions_data = []
-pages_processed = 0
+# --- Step 2: Multi-keyword Search Query ---
+query = '"data privacy" OR "data protection" OR "GDPR" OR "CCPA" OR "personal information" OR "personal data" OR "data breach"'
 
-while url and pages_processed < MAX_PAGES_PER_RUN:
-    for attempt in range(10):
+url = f"{base_url}/search/"
+params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
+opinions_data = []  # will collect every fetched opinion, across all pages and all cases
+
+# --- Step 3: Loop Through Every Page of Search Results (Pagination) ---
+while url:
+    for attempt in range(5):
         try:
             response_multi = requests.get(
                 url,
@@ -88,7 +65,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
             )
             if response_multi.status_code == 429:
                 wait = int(response_multi.headers.get("Retry-After", 60))
-                print(f"Rate limited on search. Waiting {wait}s (attempt {attempt+1}/10)...")
+                print(f"Rate limited on search. Waiting {wait}s (attempt {attempt+1}/5)...")
                 time.sleep(wait)
                 continue
             response_multi.raise_for_status()
@@ -101,14 +78,15 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
         sys.exit(1)
 
     page_data = response_multi.json()
-    pages_processed += 1
-    print(f"Fetched page {pages_processed}/{MAX_PAGES_PER_RUN} with", len(page_data["results"]), "results")
+    print("Fetched page with", len(page_data["results"]), "results")
 
+    # For each case in this page, fetch the full data of every opinion it contains
+    # (Not just the first one, but rather: majority, dissent, concurrence, etc.)
     for result in page_data["results"]:
         for opinion in result["opinions"]:
             opinion_id = opinion["id"]
 
-            for attempt in range(10):
+            for attempt in range(5):
                 try:
                     opinion_response = requests.get(
                         f"{base_url}/opinions/{opinion_id}/",
@@ -117,7 +95,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
                     )
                     if opinion_response.status_code == 429:
                         wait = int(opinion_response.headers.get("Retry-After", 60))
-                        print(f"Rate limited on opinion {opinion_id}. Waiting {wait}s (attempt {attempt+1}/10)...")
+                        print(f"Rate limited on opinion {opinion_id}. Waiting {wait}s (attempt {attempt+1}/5)...")
                         time.sleep(wait)
                         continue
                     opinion_response.raise_for_status()
@@ -133,49 +111,25 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
                 continue
 
             opinions_data.append(opinion_response.json())
-            time.sleep(2)
+            time.sleep(2)  # pace individual opinion fetches to avoid rate-limit throttling
             opinion_date = result.get("dateFiled")
             if opinion_date and (checkpoint is None or opinion_date > filed_after):
-                filed_after = opinion_date
+                filed_after = opinion_date  # will become the new checkpoint value
 
-    # Move to next page; capture it for checkpoint whether or not we continue this run
+    # Move to the next page; None means the query params are already baked into the "next" URL
     url = page_data["next"]
     params = None
-    time.sleep(2)
-
-# Save this run's opinions to a uniquely named local file (staging area before upload)
-timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-filename = f"opinions_batch_{timestamp}.json"
-output_path = f"data/api_data_ingestion/{filename}"
-os.makedirs("data/api_data_ingestion", exist_ok=True)
-
-with open(output_path, "w") as f:
+    time.sleep(2)  # pace page fetches too
+    
+# Save every opinion collected across all pages into one file
+with open("data/api_data_ingestion/opinions.json", "w") as f:
     json.dump(opinions_data, f, indent=2)
 
-print(f"Saved {len(opinions_data)} opinions locally to {output_path}")
-
-# --- Step 3: Upload this batch's file to the Databricks Volume ---
-with open(output_path, "rb") as f:
-    file_bytes = f.read()
-
-upload_url = f"{databricks_host}/api/2.0/fs/files{volume_path}/{filename}?overwrite=true"
-upload_headers = {
-    "Authorization": f"Bearer {databricks_token}",
-    "Content-Type": "application/octet-stream"
-}
-
-try:
-    upload_response = requests.put(upload_url, headers=upload_headers, data=file_bytes, timeout=60)
-    upload_response.raise_for_status()
-    print(f"Uploaded {filename} to Databricks Volume: {volume_path}")
-except requests.exceptions.RequestException as e:
-    print("ERROR: Upload to Databricks Volume failed ->", e)
-    sys.exit(1)
+print(f"Saved {len(opinions_data)} opinions to opinions.json")
 
 # --- Step 4: Write updated checkpoint ---
 new_checkpoint = {
     "last_date_filed": filed_after,
-    "next_page_url": url,  # None if pagination finished, otherwise resume point
     "last_run": datetime.now().isoformat(),
     "total_opinions_fetched": len(opinions_data)
 }
