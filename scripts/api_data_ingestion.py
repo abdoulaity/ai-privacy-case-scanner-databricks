@@ -12,11 +12,11 @@ if not api_key:
     sys.exit(1)
 
 databricks_token = os.environ.get("DATABRICKS_TOKEN")
-databricks_host = os.environ.get("DATABRICKS_WORKSPACE_URL") # Like: https://dbc-XXXXXXXX-YYYY.cloud.databricks.com/
+databricks_workspace_url = os.environ.get("DATABRICKS_WORKSPACE_URL") # Like: https://dbc-XXXXXXXX-YYYY.cloud.databricks.com/
 volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")  # Like: /Volumes/my_catalog/my_schema/my_volume
 
 if not databricks_token or not databricks_host or not volume_path:
-    print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN, DATABRICKS_HOST, DATABRICKS_VOLUME_PATH).")
+    print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN, DATABRICKS_WORKSPACE_URL, DATABRICKS_VOLUME_PATH).")
     sys.exit(1)
 
 headers = {"Authorization": f"Token {api_key}"}
