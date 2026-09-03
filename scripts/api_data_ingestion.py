@@ -13,9 +13,9 @@ if not api_key:
 
 databricks_token = os.environ.get("DATABRICKS_TOKEN")
 databricks_workspace_url = os.environ.get("DATABRICKS_WORKSPACE_URL") # Like: https://dbc-XXXXXXXX-YYYY.cloud.databricks.com/
-volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")  # Like: /Volumes/my_catalog/my_schema/my_volume
+databricks_volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")  # Like: /Volumes/my_catalog/my_schema/my_volume
 
-if not databricks_token or not databricks_host or not volume_path:
+if not databricks_token or not databricks_workspace_url or not databricks_volume_path:
     print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN, DATABRICKS_WORKSPACE_URL, DATABRICKS_VOLUME_PATH).")
     sys.exit(1)
 
@@ -158,7 +158,7 @@ print(f"Saved {len(opinions_data)} opinions locally to {output_path}")
 with open(output_path, "rb") as f:
     file_bytes = f.read()
 
-upload_url = f"{databricks_host}/api/2.0/fs/files{volume_path}/{filename}?overwrite=true"
+upload_url = f"{databricks_workspace_url}/api/2.0/fs/files{databricks_volume_path}/{filename}?overwrite=true"
 upload_headers = {
     "Authorization": f"Bearer {databricks_token}",
     "Content-Type": "application/octet-stream"
@@ -167,7 +167,7 @@ upload_headers = {
 try:
     upload_response = requests.put(upload_url, headers=upload_headers, data=file_bytes, timeout=60)
     upload_response.raise_for_status()
-    print(f"Uploaded {filename} to Databricks Volume: {volume_path}")
+    print(f"Uploaded {filename} to Databricks Volume: {databricks_volume_path}")
 except requests.exceptions.RequestException as e:
     print("ERROR: Upload to Databricks Volume failed ->", e)
     sys.exit(1)
