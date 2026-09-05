@@ -145,7 +145,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
 
 # Save this run's opinions to a uniquely named local file (staging area before upload)
 timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-filename = f"opinions_batch_{timestamp}.json"
+filename = f"api_data_opinions_batch_{timestamp}.json"
 output_path = f"data/api_data_ingestion/{filename}"
 os.makedirs("data/api_data_ingestion", exist_ok=True)
 
@@ -163,6 +163,7 @@ upload_headers = {
     "Authorization": f"Bearer {databricks_token}",
     "Content-Type": "application/octet-stream"
 }
+print("Upload URL:", upload_url)
 
 try:
     upload_response = requests.put(upload_url, headers=upload_headers, data=file_bytes, timeout=60)
