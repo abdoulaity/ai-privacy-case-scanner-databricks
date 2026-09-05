@@ -1,0 +1,6 @@
+name: Test Databricks Upload
+env:
+  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+  DATABRICKS_WORKSPACE_URL: ${{ secrets.DATABRICKS_WORKSPACE_URL }}
+  DATABRICKS_VOLUME_PATH: ${{ secrets.DATABRICKS_VOLUME_PATH }}
+run: python scripts/test_databricks_upload.py
