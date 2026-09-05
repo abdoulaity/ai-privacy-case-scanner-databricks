@@ -1,8 +1,13 @@
-### 🛠️ Technology Stack & Architecture
+# SYSTEM ARCHITECTURE
 
-| Layer / Component | Technology Used | Purpose & Data Flow | Next Step |
-| :--- | :--- | :--- | :--- |
-| **Frontend** | React | User Interface & Client-side rendering | → Sends API requests |
-| **Backend API** | Node.js | Business logic, Routing, Auth | → Queries Database / Cache |
-| **Database** | PostgreSQL | Relational storage for persistent data | Final storage |
-| **Caching Layer**| Redis | Session management & fast data retrieval| Low-latency response |
+#### Technical Stack
+
+| LAYER | TECHNOLOGY | STATUS | 
+|---|---|---|
+| Data source | CourtListener REST API v4 | Implemented |
+| Ingestion & Automation | GitHub Actions | Implemented |
+| Compute & Storage | Databricks (Delta Lake, Spark, GraphFrames, Unity Catalog) | Planned |
+| Citation Graph | GraphFrames (PageRank, Citation Network) | Planned |
+| Model serving | Databricks Model Serving | Planned |
+| Backend API | FastAPI, hosted on Railway | Planned |
+| Frontend | Chatbot UI: React + Tailwind + ShadCN | Planned |
