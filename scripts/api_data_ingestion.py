@@ -23,7 +23,7 @@ headers = {"Authorization": f"Token {api_key}"}
 base_url = "https://www.courtlistener.com/api/rest/v4"
 os.makedirs("data/api_data_examples", exist_ok=True)
 
-MAX_PAGES_PER_RUN = 10  # cap how many pages this single run processes
+MAX_PAGES_PER_RUN = 1  # cap how many pages this single run processes
 
 # --- Read existing checkpoint, if any ---
 checkpoint_path = "data/checkpoint/checkpoint.json"
@@ -78,7 +78,7 @@ opinions_data = []
 pages_processed = 0
 
 while url and pages_processed < MAX_PAGES_PER_RUN:
-    for attempt in range(10):
+    for attempt in range(3):
         try:
             response_multi = requests.get(
                 url,
@@ -108,7 +108,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
         for opinion in result["opinions"]:
             opinion_id = opinion["id"]
 
-            for attempt in range(10):
+            for attempt in range(30):
                 try:
                     opinion_response = requests.get(
                         f"{base_url}/opinions/{opinion_id}/",
