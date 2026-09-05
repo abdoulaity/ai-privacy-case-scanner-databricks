@@ -1,0 +1,6 @@
+{
+  "last_date_filed": "2024-07-25",
+  "next_page_url": "https://www.courtlistener.com/api/rest/v4/search/?cursor=cz00My4xODUzMTgmcz0xMDAxNDM5NyZ0PW8mZD0yMDI2LTA5LTA1JnA9Mg%3D%3D&filed_after=2020-12-31&filed_before=2026-09-05&q=%22data+privacy%22+OR+%22data+protection%22+OR+%22GDPR%22+OR+%22CCPA%22+OR+%22personal+information%22+OR+%22personal+data%22+OR+%22data+breach%22&type=o",
+  "last_run": "2026-09-05T23:18:08.820394",
+  "total_opinions_fetched": 20
+}
