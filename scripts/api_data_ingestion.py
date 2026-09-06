@@ -88,7 +88,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
             )
             if response_multi.status_code == 429:
                 wait = int(response_multi.headers.get("Retry-After", 60))
-                print(f"Rate limited on search. Waiting {wait}s (attempt {attempt+1}/10)...")
+                print(f"Rate limited on search. Waiting {wait}s (attempt {attempt+1}/3)...")
                 time.sleep(wait)
                 continue
             response_multi.raise_for_status()
@@ -117,7 +117,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
                     )
                     if opinion_response.status_code == 429:
                         wait = int(opinion_response.headers.get("Retry-After", 60))
-                        print(f"Rate limited on opinion {opinion_id}. Waiting {wait}s (attempt {attempt+1}/10)...")
+                        print(f"Rate limited on opinion {opinion_id}. Waiting {wait}s (attempt {attempt+1}/3)...")
                         time.sleep(wait)
                         continue
                     opinion_response.raise_for_status()
