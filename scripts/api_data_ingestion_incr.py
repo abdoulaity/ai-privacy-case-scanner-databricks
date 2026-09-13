@@ -11,52 +11,43 @@ if not api_key:
     print("ERROR: COURT_LISTENER_KEY environment variable not set.")
     sys.exit(1)
 
-databricks_token = os.environ.get("DATABRICKS_TOKEN")
-databricks_workspace_url = os.environ.get("DATABRICKS_WORKSPACE_URL") # Like: https://dbc-XXXXXXXX-YYYY.cloud.databricks.com/
-databricks_volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")  # Like: /Volumes/my_catalog/my_schema/my_volume
+databricks_token_push_volume = os.environ.get("DATABRICKS_TOKEN_PUSH_VOLUME")
+databricks_workspace_url = os.environ.get("DATABRICKS_WORKSPACE_URL")
+volume_path = os.environ.get("DATABRICKS_VOLUME_PATH")
 
-if not databricks_token or not databricks_workspace_url or not databricks_volume_path:
-    print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN, DATABRICKS_WORKSPACE_URL, DATABRICKS_VOLUME_PATH).")
+if not databricks_token_push_volume or not databricks_workspace_url or not volume_path:
+    print("ERROR: Databricks credentials/config not set (DATABRICKS_TOKEN_PUSH_VOLUME, DATABRICKS_WORKSPACE_URL, DATABRICKS_VOLUME_PATH).")
     sys.exit(1)
 
 headers = {"Authorization": f"Token {api_key}"}
 base_url = "https://www.courtlistener.com/api/rest/v4"
-os.makedirs("data/api_data_examples", exist_ok=True)
+os.makedirs("data/api_data_ingestion", exist_ok=True)
 
-MAX_PAGES_PER_RUN = 1  # cap how many pages this single run processes
+MAX_PAGES_PER_RUN = 30  # incremental runs are infrequent
 
-# --- Read existing checkpoint, if any ---
+# --- Read Existing Checkpoint (Required for Incremental Mode) ---
 checkpoint_path = "data/checkpoint/checkpoint.json"
 os.makedirs("data/checkpoint", exist_ok=True)
 
 query = '"data privacy" OR "data protection" OR "GDPR" OR "CCPA" OR "personal information" OR "personal data" OR "data breach"'
 base_search_url = f"{base_url}/search/"
 
-if os.path.exists(checkpoint_path):
-    with open(checkpoint_path, "r") as f:
-        checkpoint = json.load(f)
+if not os.path.exists(checkpoint_path):
+    print("ERROR: No checkpoint found. Run the historical backfill script first.")
+    sys.exit(1)
 
-    if checkpoint.get("next_page_url"):
-        # Mid-backfill: resume exactly where the last run stopped
-        url = checkpoint["next_page_url"]
-        params = None
-        filed_after = checkpoint["last_date_filed"]
-        print("Resuming mid-backfill from stored page URL.")
-    else:
-        # Backfill finished previously: now in incremental mode
-        filed_after = checkpoint["last_date_filed"]
-        filed_before = datetime.now().strftime("%Y-%m-%d")
-        url = base_search_url
-        params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
-        print("Checkpoint found. Running incremental from:", filed_after)
-else:
-    # First-ever run: full backfill start
-    checkpoint = None
-    filed_after = "2020-12-31"
-    filed_before = datetime.now().strftime("%Y-%m-%d")
-    url = base_search_url
-    params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
-    print("No checkpoint found. Running backfill from:", filed_after)
+with open(checkpoint_path, "r") as f:
+    checkpoint = json.load(f)
+
+if checkpoint.get("next_page_url"):
+    print("ERROR: Historical backfill is not yet complete (next_page_url still set). Run the backfill script first.")
+    sys.exit(1)
+
+filed_after = checkpoint["last_date_filed"]
+filed_before = datetime.now().strftime("%Y-%m-%d")
+url = base_search_url
+params = {"q": query, "type": "o", "filed_after": filed_after, "filed_before": filed_before}
+print("Running incremental ingestion from:", filed_after, "to", filed_before)
 
 # --- Step 1: Basic Connectivity Test ---
 try:
@@ -73,7 +64,7 @@ except requests.exceptions.RequestException as e:
 
 print("Connectivity Test: Passed")
 
-# --- Step 2: Loop Through a Capped Number of Pages (Pagination + Batching) ---
+# --- Step 2/3: Loop Through a Capped Number of Pages (Pagination + Batching) ---
 opinions_data = []
 pages_processed = 0
 
@@ -108,7 +99,7 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
         for opinion in result["opinions"]:
             opinion_id = opinion["id"]
 
-            for attempt in range(30):
+            for attempt in range(3):
                 try:
                     opinion_response = requests.get(
                         f"{base_url}/opinions/{opinion_id}/",
@@ -135,48 +126,47 @@ while url and pages_processed < MAX_PAGES_PER_RUN:
             opinions_data.append(opinion_response.json())
             time.sleep(2)
             opinion_date = result.get("dateFiled")
-            if opinion_date and (checkpoint is None or opinion_date > filed_after):
+            if opinion_date and opinion_date > filed_after:
                 filed_after = opinion_date
 
-    # Move to next page; capture it for checkpoint whether or not we continue this run
     url = page_data["next"]
     params = None
     time.sleep(2)
 
-# Save this run's opinions to a uniquely named local file (staging area before upload)
+# Save this Run's Opinions to a Uniquely Named Local File (Staging Area before Upload)
 timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
-filename = f"api_data_opinions_batch_{timestamp}.json"
+filename = f"api_data_opinions_incr_{timestamp}.json"
 output_path = f"data/api_data_ingestion/{filename}"
-os.makedirs("data/api_data_ingestion", exist_ok=True)
 
 with open(output_path, "w") as f:
     json.dump(opinions_data, f, indent=2)
 
 print(f"Saved {len(opinions_data)} opinions locally to {output_path}")
 
-# --- Step 3: Upload this batch's file to the Databricks Volume ---
+# --- Upload this Batch's File to the Databricks Volume ---
 with open(output_path, "rb") as f:
     file_bytes = f.read()
 
-upload_url = f"{databricks_workspace_url}/api/2.0/fs/files{databricks_volume_path}/{filename}?overwrite=true"
+upload_url = f"{databricks_workspace_url}/api/2.0/fs/files{volume_path}/{filename}?overwrite=true"
+print("Upload URL:", upload_url)
+
 upload_headers = {
-    "Authorization": f"Bearer {databricks_token}",
+    "Authorization": f"Bearer {databricks_token_push_volume}",
     "Content-Type": "application/octet-stream"
 }
-print("Upload URL:", upload_url)
 
 try:
     upload_response = requests.put(upload_url, headers=upload_headers, data=file_bytes, timeout=60)
     upload_response.raise_for_status()
-    print(f"Uploaded {filename} to Databricks Volume: {databricks_volume_path}")
+    print(f"Uploaded {filename} to Databricks Volume: {volume_path}")
 except requests.exceptions.RequestException as e:
     print("ERROR: Upload to Databricks Volume failed ->", e)
     sys.exit(1)
 
-# --- Step 4: Write updated checkpoint ---
+# --- Write Updated Checkpoint ---
 new_checkpoint = {
     "last_date_filed": filed_after,
-    "next_page_url": url,  # None if pagination finished, otherwise resume point
+    "next_page_url": url,  # normally None; if set, more incremental results exist beyond this run's cap
     "last_run": datetime.now().isoformat(),
     "total_opinions_fetched": len(opinions_data)
 }

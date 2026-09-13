@@ -1,7 +1,9 @@
-name: API PRIVACY CASES
+name: API Data Ingestion - Historical Backfill
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 * * * *'
 
 jobs:
   fetch-data:
@@ -18,18 +20,18 @@ jobs:
       - name: Install Dependencies
         run: pip install requests
 
-      - name: Run Ingestion Script
+      - name: Run Historical Ingestion Script
         env:
           COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY }}
-          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
+          DATABRICKS_TOKEN_PUSH_VOLUME: ${{ secrets.DATABRICKS_TOKEN_PUSH_VOLUME }}
           DATABRICKS_WORKSPACE_URL: ${{ secrets.DATABRICKS_WORKSPACE_URL }}
           DATABRICKS_VOLUME_PATH: ${{ secrets.DATABRICKS_VOLUME_PATH }}
-        run: python scripts/api_data_ingestion.py
+        run: python scripts/api_data_ingestion_hist.py
 
       - name: Commit and Push Checkpoint
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/checkpoint/
-          git commit -m "chore: update ingestion checkpoint" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
+          git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
           git push
