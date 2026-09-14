@@ -37,5 +37,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/checkpoint/
-          git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill Size Reduction)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
+          git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill: once per day)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
           git push
