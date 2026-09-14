@@ -24,10 +24,10 @@ base_url = "https://www.courtlistener.com/api/rest/v4"
 os.makedirs("data/api_data_examples", exist_ok=True)
 os.makedirs("data/api_data_ingestion", exist_ok=True)
 
-MAX_PAGES_PER_RUN = 10  # cap how many pages this single run processes
+MAX_PAGES_PER_RUN = 2  # cap how many pages this single run processes
 
 # --- Historical Backfill Window ---
-BACKFILL_START_DATE = "2020-12-31"
+BACKFILL_START_DATE = "2024-12-31"
 BACKFILL_END_DATE = "2026-06-30"
 
 # --- Read Existing Checkpoint, if any ---

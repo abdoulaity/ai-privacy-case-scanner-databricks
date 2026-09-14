@@ -3,7 +3,11 @@ name: API Data Ingestion - Historical Backfill
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 * * * *'
+    - cron: '0 0 * * *'
+
+concurrency:
+  group: historical-ingestion
+  cancel-in-progress: false
 
 jobs:
   fetch-data:
@@ -33,5 +37,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/checkpoint/
-          git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
+          git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill Size Reduction)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
           git push
