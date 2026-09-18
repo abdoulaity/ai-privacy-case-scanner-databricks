@@ -2,8 +2,8 @@ name: API Data Ingestion - Historical Backfill
 
 on:
   workflow_dispatch:
-  #schedule:
-    #- cron: '0 0 * * *'
+  schedule:
+    - cron: '0 0 * * *'
 
 concurrency:
   group: historical-ingestion
