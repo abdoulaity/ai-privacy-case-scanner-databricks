@@ -1,6 +1,6 @@
 {
   "last_date_filed": "2026-06-29",
-  "next_page_url": "https://www.courtlistener.com/api/rest/v4/search/?cursor=cz02Ljk4MDIzMTMmcz0xMDczNzk1NSZ0PW8mZD0yMDI2LTA5LTE5JnA9MTM%3D&filed_after=2024-12-31&filed_before=2026-06-30&q=%22data+privacy%22+OR+%22data+protection%22+OR+%22GDPR%22+OR+%22CCPA%22+OR+%22personal+information%22+OR+%22personal+data%22+OR+%22data+breach%22&type=o",
-  "last_run": "2026-09-27T04:20:01.966307",
-  "total_opinions_fetched": 42
+  "next_page_url": "https://www.courtlistener.com/api/rest/v4/search/?cursor=cz02LjM2OTgzNjMmcz0xMDMzNDY4NCZ0PW8mZD0yMDI2LTA5LTE5JnA9MTU%3D&filed_after=2024-12-31&filed_before=2026-06-30&q=%22data+privacy%22+OR+%22data+protection%22+OR+%22GDPR%22+OR+%22CCPA%22+OR+%22personal+information%22+OR+%22personal+data%22+OR+%22data+breach%22&type=o",
+  "last_run": "2026-09-28T04:21:35.800060",
+  "total_opinions_fetched": 44
 }
