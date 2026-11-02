@@ -26,10 +26,10 @@ jobs:
 
       - name: Run Incremental Ingestion Script
         env:
-          COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY_TEST }}
-          DATABRICKS_TOKEN_PUSH_VOLUME: ${{ secrets.DATABRICKS_TOKEN_PUSH_VOLUME_TEST }}
-          DATABRICKS_WORKSPACE_URL: ${{ secrets.DATABRICKS_WORKSPACE_URL_TEST }}
-          DATABRICKS_VOLUME_PATH: ${{ secrets.DATABRICKS_VOLUME_PATH_TEST }}
+          COURT_LISTENER_KEY: ${{ secrets.COURT_LISTENER_KEY }}
+          DATABRICKS_TOKEN_PUSH_VOLUME: ${{ secrets.DATABRICKS_TOKEN_PUSH_VOLUME }}
+          DATABRICKS_WORKSPACE_URL: ${{ secrets.DATABRICKS_WORKSPACE_URL }}
+          DATABRICKS_VOLUME_PATH: ${{ secrets.DATABRICKS_VOLUME_PATH }}
         run: python scripts/api_data_ingestion_incr.py
 
       - name: Commit and Push Checkpoint
@@ -45,4 +45,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue create --title "Incremental ingestion failed" --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"    
+          gh issue create --title "Triannual Incremental ingestion failed" --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"    
