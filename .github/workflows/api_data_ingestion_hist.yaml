@@ -5,6 +5,11 @@ on:
   schedule:
     - cron: '0 0 * * *'
 
+permissions:
+  contents: write   # for commiting the checkpoint commit
+  actions: write    # for disabling the workflow
+  issues: write     # for adding the "backfill complete" issue
+
 concurrency:
   group: historical-ingestion
   cancel-in-progress: false
@@ -39,3 +44,12 @@ jobs:
           git add data/checkpoint/
           git commit -m "chore: Update Ingestion Checkpoint (Historical Backfill: once per day)" -m "Checkpoint updated after fetching and pushing a new batch of opinions to Databricks Volume." || echo "No changes to commit"
           git push
+                
+      - name: Stop this workflow once backfill is complete
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if grep -q '"next_page_url": null' data/checkpoint/checkpoint.json; then
+            gh workflow disable api_data_ingestion_hist.yaml
+            gh issue create --title "Backfill complete" --body "Historical workflow disabled itself."
+          fi

@@ -5,6 +5,10 @@ on:
   schedule:
     - cron: '0 0 30 4,8,12 *'
 
+permissions:
+  contents: write   # for commiting the checkpoint commit
+  issues: write     # for failure alert
+
 jobs:
   fetch-data:
     runs-on: ubuntu-latest
@@ -35,3 +39,9 @@ jobs:
           git add data/checkpoint/
           git commit -m "chore: Update Ingestion Checkpoint (Incremental: three times per year)" -m "Checkpoint updated after fetching and pushing new opinions since last run to Databricks Volume." || echo "No changes to commit"
           git push
+
+      - name: Open an issue if the run failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "Incremental ingestion failed" --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"    
