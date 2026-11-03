@@ -22,8 +22,8 @@
 
 >**API Data Examples**: a one-off exploratory workflow that fetches a **single search result** and a **single opinion** from **CourtListener**, saving them as reference JSON files. Used early in the project to inspect the **API's response schema** before designing the ingestion pipeline.
 
->**Historical Backfill**: populates the initial corpus by paginating through a fixed date range (`2020-12-31 to 2026-06-30`), fetching every **matching opinion**. Triggered **hourly** via cron until completion, this workflow processes a capped number of pages per run to respect **CourtListener's rate limits**, using a shared **checkpoint file** to resume exactly where the previous run left off.
+>**Historical Backfill**: populates the initial corpus by paginating through a fixed date range (`2024-12-31 to 2026-06-30`), fetching every **matching opinion**. Triggered **hourly** via cron until completion, this workflow processes a capped number of pages per run to respect **CourtListener's rate limits**, using a shared **checkpoint file** to resume exactly where the previous run left off.
 
->**Incremental Ingestion**: once backfill completes, this workflow takes over on a slower, recurring schedule (` tri-annual`), fetching only cases filed since the last successful run. This keeps the corpus current without re-processing already-ingested data.
+>**Incremental Ingestion**: once backfill completes, this workflow takes over on a slower, recurring schedule (` tri-annual`), fetching only cases filed since the last successful run. This keeps the corpus current without re-processing already-ingested data. However, for quota management purposes, the incremental run does not catch-up on the entire four-month period. Instead, it only adds 2 pages ( about 40 opinions).
 
 All **three workflows** authenticate to **CourtListener** via a token stored as a **GitHub Secret**, and to **Databricks** via a separately scoped **Personal Access Token** (requiring the files API scope) used to upload results to the **Volume**.

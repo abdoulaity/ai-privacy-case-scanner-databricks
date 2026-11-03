@@ -23,7 +23,7 @@ headers = {"Authorization": f"Token {api_key}"}
 base_url = "https://www.courtlistener.com/api/rest/v4"
 os.makedirs("data/api_data_ingestion", exist_ok=True)
 
-MAX_PAGES_PER_RUN = 2 # incremental runs are infrequent
+MAX_PAGES_PER_RUN = 2 # small cap: about 40 opinions per run keeps one run well under the 125 requests/day limit
 
 # --- Read Existing Checkpoint (Required for Incremental Mode) ---
 checkpoint_path = "data/checkpoint/checkpoint.json"
