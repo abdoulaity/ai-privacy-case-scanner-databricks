@@ -7,7 +7,7 @@ on:
 
 permissions:
   contents: write   # for commiting the checkpoint commit
-  issues: write     # for failure alert
+  issues: write     # for failure and success issues
 
 jobs:
   fetch-data:
@@ -45,4 +45,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh issue create --title "Triannual Incremental ingestion failed" --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"    
+          gh issue create --title "Triannual Incremental Ingestion Failed" --body "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+
+      - name: Open an issue when the run succeeds
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create --title "Triannual Incremental Ingestion Complete" --body "Successful run at $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"        
